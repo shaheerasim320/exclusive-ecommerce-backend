@@ -7,6 +7,7 @@ export const assignGuestId = (req, res, next) => {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000, 
             sameSite: "Lax",
+            secure: true,
         });
         req.guestId = guestId;
     } else if (!req.user) {
