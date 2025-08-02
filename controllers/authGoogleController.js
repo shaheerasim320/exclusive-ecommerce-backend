@@ -12,7 +12,7 @@ dotenv.config()
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:8080/api/v1/users/google/callback",
+    callbackURL: "https://exclusive-ecommerce-backend.vercel.app/api/v1/users/google/callback",
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         let user = await User.findOne({ email: profile.emails[0].value })
@@ -58,7 +58,7 @@ export const googleLogin = passport.authenticate("google", {
 
 
 export const googleCallback = [
-  passport.authenticate("google", { failureRedirect: "http://localhost:5173/login", session: false }),
+  passport.authenticate("google", { failureRedirect: "https://exclusive-ecommerce-lac.vercel.app/login", session: false }),
   (req, res) => {
     const user = req.user;
 
@@ -71,7 +71,7 @@ export const googleCallback = [
       sameSite: "Strict"
     });
 
-    const redirectUrl = `http://localhost:5173/auth-callback?token=${accessToken}`;
+    const redirectUrl = `https://exclusive-ecommerce-lac.vercel.app/auth-callback?token=${accessToken}`;
     res.redirect(redirectUrl);
   }
 ];
