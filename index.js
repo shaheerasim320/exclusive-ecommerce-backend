@@ -102,10 +102,13 @@ app.use("/api/v1/admin", verifyAccessToken, verifyAdmin, adminRoutes)
 
 app.use("/api/v1/flashSale", flashSaleRoutes)
 
-app.use((req, res) => {
-    res.status(404).json({ message: "Route not found" });
-});
+app.get("/", (req, res) => {
+    return res.send("Backend Is Running")
+})
 
-export default serverless(app);
+app.listen(PORT, () => {
+    console.log(`Server is running on ${PORT}`)
+})
+
 
 
