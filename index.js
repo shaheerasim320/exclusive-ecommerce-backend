@@ -20,6 +20,7 @@ import categoryRoutes from "./routes/categoryRoutes.js"
 import adminRoutes from "./routes/adminRoutes.js"
 import flashSaleRoutes from "./routes/flashSaleRoutes.js"
 import { assignGuestId } from "./middlewares/assignGuestID.js";
+import { dbConnectMiddleware } from "./middlewares/dbConnectMiddleware.js";
 import cron from "node-cron"
 import cleanGuestData from "./cron/cleanGuestData.js";
 import cleanupBillings from "./cron/cleanupBillings.js";
@@ -70,9 +71,7 @@ app.use(cors({
 //     }
 // });
 
-mongoose.connect(process.env.MONGODB_URI, { dbName: "exclusive-ecommerce" })
-    .then(conn => console.log(`MongoDB Connected With Server: ${conn.connection.host}`))
-    .catch(err => console.log(`Error Occured: ${err}`))
+app.use(dbConnectMiddleware);
 
 app.use("/api/v1/products", productRoutes)
 
