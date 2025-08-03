@@ -6,7 +6,7 @@ export const assignGuestId = (req, res, next) => {
         res.cookie("guest_id", guestId, {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000, 
-            sameSite: "Lax",
+            sameSite: "None",
             secure: true,
         });
         req.guestId = guestId;
