@@ -25,19 +25,26 @@ export const getCartItems = async (req, res) => {
 
 export const getGuestCartItems = async (req, res) => {
     const guestId = req.guestId;
+
+    if (!guestId) {
+        return res.status(400).json({ message: "Missing guest ID" });
+    }
+
     try {
         const cart = await Cart.findOne({ guestId }).populate("items.product");
-        if (!cart || !cart.items) {
+
+        if (!cart || !Array.isArray(cart.items)) {
             return res.status(200).json([]);
         }
-        const enrichedItems = await enrichItemsWithFlashSale(cart.items);
 
+        const enrichedItems = await enrichItemsWithFlashSale(cart.items);
         res.status(200).json(enrichedItems);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.status(500).json({ message: "Server error, please try again" });
     }
-}
+};
+
 
 export const addToCart = async (req, res) => {
     const { product, quantity, color, size } = req.body;

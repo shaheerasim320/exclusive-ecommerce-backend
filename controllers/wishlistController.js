@@ -211,15 +211,26 @@ export const getWishlistItems = async (req, res) => {
 
 export const getGuestWishlistItems = async (req, res) => {
     const guestId = req.guestId;
+
+    if (!guestId) {
+        return res.status(400).json({ message: "Missing guest ID" });
+    }
+
     try {
         const wishlist = await Wishlist.findOne({ guestId }).populate("items.product");
-        const enrichedItems = await enrichItemsWithFlashSale(wishlist.items || []);
+
+        if (!wishlist) {
+            return res.status(200).json({ items: [] });
+        }
+
+        const enrichedItems = await enrichItemsWithFlashSale(wishlist.items);
         res.status(200).json({ items: enrichedItems });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
+
 
 
 const addToCart = async (req, res) => {
