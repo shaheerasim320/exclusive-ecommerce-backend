@@ -1,5 +1,4 @@
 import express from "express"
-import mongoose from "mongoose"
 import dotenv from "dotenv";
 import cors from "cors"
 import cookieParser from "cookie-parser";
@@ -11,7 +10,6 @@ import wishlistRoutes from "./routes/wishlistRoutes.js"
 import imageRoutes from "./routes/imageRoutes.js";
 import { verifyAccessToken, verifyAdmin } from "./middlewares/authMiddleware.js"
 import billingRoutes from "./routes/billingRoutes.js"
-import { cleanupExpiredBillings } from "./utils/billingCleanup.js";
 import paymentRoutes from "./routes/paymentRoutes.js"
 import orderRoutes from "./routes/orderRoutes.js"
 import cardRoutes from "./routes/cardRoutes.js"
@@ -21,11 +19,6 @@ import adminRoutes from "./routes/adminRoutes.js"
 import flashSaleRoutes from "./routes/flashSaleRoutes.js"
 import { assignGuestId } from "./middlewares/assignGuestID.js";
 import { dbConnectMiddleware } from "./middlewares/dbConnectMiddleware.js";
-import cron from "node-cron"
-import cleanGuestData from "./cron/cleanGuestData.js";
-import cleanupBillings from "./cron/cleanupBillings.js";
-import serverless from "serverless-http"
-import extendOrRecycleFlashSales from "./cron/extendFlashSales.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 8080
@@ -39,37 +32,6 @@ app.use(cors({
     origin: "https://exclusive-ecommerce-lac.vercel.app",
     credentials: true
 }))
-
-// app.get("/api/cron/guest-cleanup", async (req, res) => {
-//     try {
-//         await cleanGuestData();
-//         res.status(200).json({ message: "Guest data cleanup complete" });
-//     } catch (error) {
-//         console.error("Guest cleanup error:", error);
-//         res.status(500).json({ error: "Guest cleanup failed" });
-//     }
-// });
-
-// app.get("/api/cron/billing-cleanup", async (req, res) => {
-//     try {
-//         await cleanupBillings();
-//         res.status(200).json({ message: "Billing cleanup complete" });
-//     } catch (error) {
-//         console.error("Billing cleanup error:", error);
-//         res.status(500).json({ error: "Billing cleanup failed" });
-//     }
-// });
-
-// app.get("/api/cron/extend-flash-sales", async (req, res) => {
-//     try {
-//         await extendOrRecycleFlashSales();
-//         res.status(200).json({ message: "Extend flash sales cron job complete" });
-//     } catch (error) {
-//         console.error("Flash sales extension error:", error);
-//         res.status(500).json({ error: "Flash sales extension failed" });
-
-//     }
-// });
 
 app.use(dbConnectMiddleware);
 
