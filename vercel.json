@@ -16,19 +16,5 @@
       "src": "/(.*)",
       "dest": "index.js"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/guestCleanup",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/billingCleanup",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/flashSale",
-      "schedule": "0 0 * * *"
-    }
   ]
 }
