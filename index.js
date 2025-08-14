@@ -19,6 +19,9 @@ import adminRoutes from "./routes/adminRoutes.js"
 import flashSaleRoutes from "./routes/flashSaleRoutes.js"
 import { assignGuestId } from "./middlewares/assignGuestID.js";
 import { dbConnectMiddleware } from "./middlewares/dbConnectMiddleware.js";
+import cleanGuestData from "./cron/cleanGuestData.js";
+import cleanupBillings from "./cron/cleanupBillings.js";
+import extendOrRecycleFlashSales from "./cron/extendFlashSales.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 8080
@@ -62,6 +65,31 @@ app.use("/api/v1/category", categoryRoutes)
 app.use("/api/v1/admin", verifyAccessToken, verifyAdmin, adminRoutes)
 
 app.use("/api/v1/flashSale", flashSaleRoutes)
+
+app.get("/api/cron/guestCleanup", async (req, res) => {
+    if (req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).end('Unauthorized');
+    }
+    await cleanGuestData();
+    res.status(200).json({ message: "Guest cleanup complete" });
+});
+
+app.get("/api/cron/billingCleanup", async (req, res) => {
+    if (req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).end('Unauthorized');
+    }
+    await cleanupBillings();
+    res.status(200).json({ message: "Billing cleanup complete" });
+});
+
+app.get("/api/cron/flashSale", async (req, res) => {
+    if (req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).end('Unauthorized');
+    }
+    await extendOrRecycleFlashSales();
+    res.status(200).json({ message: "Flash sale cron complete" });
+});
+
 
 app.get("/", (req, res) => {
     return res.send("Backend Is Running")
