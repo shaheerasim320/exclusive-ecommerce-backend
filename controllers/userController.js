@@ -34,10 +34,21 @@ export const registerUser = async (req, res) => {
         );
         const logo = "https://res.cloudinary.com/dmsuypprq/image/upload/v1738489765/bxe3q3uoapzktpuplggn.png"
         const verificationLink = `https://exclusive-ecommerce-lac.vercel.app/email/verify?token=${token}`;
-        const transporter = nodemailer.createTransport({ host: "smtp-relay.brevo.com", port: 587, secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, }, });
+        const transporter = nodemailer.createTransport({
+            host: "smtp-relay.brevo.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS, 
+            },
+        });
+
         await transporter.sendMail({
-            from: `"Exclusive" <${process.env.EMAIL_USER}>`, to: email, subject: "Verify Your Email - Exclusive", html:
-                `
+            from: `"Exclusive" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Verify Your Email - Exclusive",
+            html: `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -45,62 +56,49 @@ export const registerUser = async (req, res) => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <style>
                     @media only screen and (max-width: 600px) {
-                    .container {
-                        width: 90% !important;
-                        padding: 20px !important;
-                    }
-                    .logo {
-                        width: 80px !important;
-                        height: 80px !important;
-                    }
-                    .title {
-                        font-size: 22px !important;
-                    }
-                    .text, .footer {
-                        font-size: 14px !important;
-                    }
-                    .verify-btn {
-                        width: 100% !important;
-                        padding: 12px 0 !important;
-                    }
+                        .container { width: 90% !important; padding: 20px !important; }
+                        .logo { width: 80px !important; height: 80px !important; }
+                        .title { font-size: 22px !important; }
+                        .text, .footer { font-size: 14px !important; }
+                        .verify-btn { width: 100% !important; padding: 12px 0 !important; }
                     }
                 </style>
                 </head>
                 <body style="margin:0; padding:0; background-color:#f2f2f2;">
                 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f2f2;">
                     <tr>
-                    <td align="center">
-                        <table class="container" width="500" cellpadding="0" cellspacing="0" style="background-color:white; padding:40px; border-radius:8px; border:1px solid #ddd;">
-                        <tr>
-                            <td align="center">
-                            <img src="${logo}" alt="Logo" class="logo" style="width:120px; height:120px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="center" style="padding: 28px 0;">
-                            <h2 class="title" style="font-size:28px; font-weight:600; margin:0;">Please verify your email</h2>
-                            <p class="text" style="font-size:15px; margin-top:10px; color:#333;">To use Exclusive, click the verification button below. This helps keep your account secure.</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="center" style="padding: 30px 0;">
-                            <a href="${verificationLink}" class="verify-btn" style="display:block; background-color:#DB4444; color:white; text-decoration:none; border-radius:8px; padding:11px 0; width:154px; text-align:center;">Verify my account</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="center">
-                            <p class="footer" style="font-size:15px; color:#777; text-align:center;">
-                                This verification link is valid for 10 minutes. If you didn't request this, ignore this email.
-                            </p>
-                            </td>
-                        </tr>
-                        </table>
-                    </td>
+                        <td align="center">
+                            <table class="container" width="500" cellpadding="0" cellspacing="0" style="background-color:white; padding:40px; border-radius:8px; border:1px solid #ddd;">
+                                <tr>
+                                    <td align="center">
+                                        <img src="${logo}" alt="Logo" class="logo" style="width:120px; height:120px;" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding: 28px 0;">
+                                        <h2 class="title" style="font-size:28px; font-weight:600; margin:0;">Please verify your email</h2>
+                                        <p class="text" style="font-size:15px; margin-top:10px; color:#333;">To use Exclusive, click the verification button below. This helps keep your account secure.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding: 30px 0;">
+                                        <a href="${verificationLink}" class="verify-btn" style="display:block; background-color:#DB4444; color:white; text-decoration:none; border-radius:8px; padding:11px 0; width:154px; text-align:center;">Verify my account</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <p class="footer" style="font-size:15px; color:#777; text-align:center;">
+                                            This verification link is valid for 10 minutes. If you didn't request this, ignore this email.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
                     </tr>
                 </table>
                 </body>
                 </html>
-                `
+            `,
         });
         res.status(201).json({
             name: fullName
@@ -483,13 +481,23 @@ export const resendToken = async (req, res) => {
             `;
         }
 
-        const transporter = nodemailer.createTransport({ host: "smtp-relay.brevo.com", port: 587, secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, }, });
+        const transporter = nodemailer.createTransport({
+            host: "smtp-relay.brevo.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
         await transporter.sendMail({
             from: `"Exclusive" <${process.env.EMAIL_USER}>`,
             to: email,
             subject,
             html: htmlContent
         });
+
 
         res.status(200).json({ name: user?.fullName });
 
@@ -620,13 +628,23 @@ export const subscribeToNewsletter = async (req, res) => {
         </body>
         </html>
     `;
-        const transporter = nodemailer.createTransport({ host: "smtp-relay.brevo.com", port: 587, secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, }, });
+        const transporter = nodemailer.createTransport({
+            host: "smtp-relay.brevo.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
         await transporter.sendMail({
             from: `"Exclusive" <${process.env.EMAIL_USER}>`,
             to: email,
             subject,
             html: htmlContent
         });
+
         res.status(200).json({ message: `Newsletter confirmation email sent to ${email}` });
     } catch (error) {
         res.status(500).json({ message: `Failed to send newsletter confirmation email to ${email}` });
