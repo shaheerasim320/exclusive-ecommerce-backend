@@ -1,13 +1,13 @@
 import User from "../models/User.js";
-import Address from "../models/Address.js";
 import Cart from "../models/Cart.js";
 import dotenv from "dotenv"
-import jwt, { decode } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import axios from "axios"
 import Counter from "../models/Counter.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/tokenUtils.js";
 import Wishlist from "../models/Wishlist.js";
+import nodemailer from "nodemailer"
 
 dotenv.config()
 
@@ -33,86 +33,75 @@ export const registerUser = async (req, res) => {
             { expiresIn: "10m" }
         );
         const logo = "https://res.cloudinary.com/dmsuypprq/image/upload/v1738489765/bxe3q3uoapzktpuplggn.png"
-        const verificationLink = `http://localhost:5173/email/verify?token=${token}`;
-        await axios.post(
-            process.env.API_URL,
-            {
-                sender: { email: "shaheerasim320@gmail.com", name: "Shaheer Asim" },
-                to: [{ email: email }],
-                subject: "Verify Your Email - Exclusive",
-                htmlContent: `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    @media only screen and (max-width: 600px) {
-      .container {
-        width: 90% !important;
-        padding: 20px !important;
-      }
-      .logo {
-        width: 80px !important;
-        height: 80px !important;
-      }
-      .title {
-        font-size: 22px !important;
-      }
-      .text, .footer {
-        font-size: 14px !important;
-      }
-      .verify-btn {
-        width: 100% !important;
-        padding: 12px 0 !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin:0; padding:0; background-color:#f2f2f2;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f2f2;">
-    <tr>
-      <td align="center">
-        <table class="container" width="500" cellpadding="0" cellspacing="0" style="background-color:white; padding:40px; border-radius:8px; border:1px solid #ddd;">
-          <tr>
-            <td align="center">
-              <img src="${logo}" alt="Logo" class="logo" style="width:120px; height:120px;" />
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding: 28px 0;">
-              <h2 class="title" style="font-size:28px; font-weight:600; margin:0;">Please verify your email</h2>
-              <p class="text" style="font-size:15px; margin-top:10px; color:#333;">To use Exclusive, click the verification button below. This helps keep your account secure.</p>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding: 30px 0;">
-              <a href="${verificationLink}" class="verify-btn" style="display:block; background-color:#DB4444; color:white; text-decoration:none; border-radius:8px; padding:11px 0; width:154px; text-align:center;">Verify my account</a>
-            </td>
-          </tr>
-          <tr>
-            <td align="center">
-              <p class="footer" style="font-size:15px; color:#777; text-align:center;">
-                This verification link is valid for 10 minutes. If you didn't request this, ignore this email.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-`
-
-            },
-            {
-                headers: {
-                    "api-key": process.env.BREVO_API_KEY,
-                    "Content-Type": "application/json"
-                }
-            }
-        )
+        const verificationLink = `https://exclusive-ecommerce-lac.vercel.app/email/verify?token=${token}`;
+        const transporter = nodemailer.createTransport({ host: "smtp-relay.brevo.com", port: 587, secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, }, });
+        await transporter.sendMail({
+            from: `"Exclusive" <${process.env.EMAIL_USER}>`, to: email, subject: "Verify Your Email - Exclusive", html:
+                `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <meta charset="UTF-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                <style>
+                    @media only screen and (max-width: 600px) {
+                    .container {
+                        width: 90% !important;
+                        padding: 20px !important;
+                    }
+                    .logo {
+                        width: 80px !important;
+                        height: 80px !important;
+                    }
+                    .title {
+                        font-size: 22px !important;
+                    }
+                    .text, .footer {
+                        font-size: 14px !important;
+                    }
+                    .verify-btn {
+                        width: 100% !important;
+                        padding: 12px 0 !important;
+                    }
+                    }
+                </style>
+                </head>
+                <body style="margin:0; padding:0; background-color:#f2f2f2;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f2f2;">
+                    <tr>
+                    <td align="center">
+                        <table class="container" width="500" cellpadding="0" cellspacing="0" style="background-color:white; padding:40px; border-radius:8px; border:1px solid #ddd;">
+                        <tr>
+                            <td align="center">
+                            <img src="${logo}" alt="Logo" class="logo" style="width:120px; height:120px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 28px 0;">
+                            <h2 class="title" style="font-size:28px; font-weight:600; margin:0;">Please verify your email</h2>
+                            <p class="text" style="font-size:15px; margin-top:10px; color:#333;">To use Exclusive, click the verification button below. This helps keep your account secure.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 30px 0;">
+                            <a href="${verificationLink}" class="verify-btn" style="display:block; background-color:#DB4444; color:white; text-decoration:none; border-radius:8px; padding:11px 0; width:154px; text-align:center;">Verify my account</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center">
+                            <p class="footer" style="font-size:15px; color:#777; text-align:center;">
+                                This verification link is valid for 10 minutes. If you didn't request this, ignore this email.
+                            </p>
+                            </td>
+                        </tr>
+                        </table>
+                    </td>
+                    </tr>
+                </table>
+                </body>
+                </html>
+                `
+        });
         res.status(201).json({
             name: fullName
         })
@@ -278,7 +267,7 @@ export const resendToken = async (req, res) => {
         let subject, htmlContent;
 
         // Base URL for frontend, use environment variable for production
-        const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendBaseUrl = "https://exclusive-ecommerce-lac.vercel.app";
 
         if (isAdminPassword) {
             // Admin-created user: password setup email
@@ -494,23 +483,13 @@ export const resendToken = async (req, res) => {
             `;
         }
 
-
-        // Send email via Brevo (Sendinblue)
-        await axios.post(
-            process.env.API_URL,
-            {
-                sender: { email: "shaheerasim320@gmail.com", name: "Shaheer Asim" },
-                to: [{ email }],
-                subject,
-                htmlContent
-            },
-            {
-                headers: {
-                    "api-key": process.env.BREVO_API_KEY,
-                    "Content-Type": "application/json"
-                }
-            }
-        );
+        const transporter = nodemailer.createTransport({ host: "smtp-relay.brevo.com", port: 587, secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, }, });
+        await transporter.sendMail({
+            from: `"Exclusive" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject,
+            html: htmlContent
+        });
 
         res.status(200).json({ name: user?.fullName });
 
@@ -536,7 +515,7 @@ export const subscribeToNewsletter = async (req, res) => {
         const logo = "https://res.cloudinary.com/dmsuypprq/image/upload/v1738489765/bxe3q3uoapzktpuplggn.png"; // Your logo URL
         const subject = "Welcome to Our Newsletter - Exclusive!";
 
-        const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendBaseUrl = "https://exclusive-ecommerce-lac.vercel.app";
 
         const htmlContent = `
         <!DOCTYPE html>
@@ -641,21 +620,13 @@ export const subscribeToNewsletter = async (req, res) => {
         </body>
         </html>
     `;
-        await axios.post(
-            process.env.API_URL,
-            {
-                sender: { email: "shaheerasim320@gmail.com", name: "Shaheer Asim" },
-                to: [{ email: email }],
-                subject: subject,
-                htmlContent: htmlContent
-            },
-            {
-                headers: {
-                    "api-key": process.env.BREVO_API_KEY,
-                    "Content-Type": "application/json"
-                }
-            }
-        );
+        const transporter = nodemailer.createTransport({ host: "smtp-relay.brevo.com", port: 587, secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, }, });
+        await transporter.sendMail({
+            from: `"Exclusive" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject,
+            html: htmlContent
+        });
         res.status(200).json({ message: `Newsletter confirmation email sent to ${email}` });
     } catch (error) {
         res.status(500).json({ message: `Failed to send newsletter confirmation email to ${email}` });
@@ -687,9 +658,9 @@ export const login = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            secure: process.env.NODE_ENV === "production",
             sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         })
 
         res.status(200).json({
@@ -720,8 +691,8 @@ export const refreshAccessToken = (req, res) => {
 export const logout = (req, res) => {
     res.clearCookie("refreshToken", {
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "None",
-        secure: false,
     });
     res.status(200).json({ message: "Logged out successfully" });
 };
