@@ -47,30 +47,20 @@ export const getGuestCartItems = async (req, res) => {
 
 
 export const addToCart = async (req, res) => {
-    const { product, quantity, color, size } = req.body;
+    const { product, quantity = 1, color, size } = req.body;
+    const query = req.user?.userId ? { user: req.user.userId } : { guestId: req.guestId };
 
     try {
-        const query = req.user?.userId ? { user: req.user.userId } : { guestId: req.guestId };
+        let result = await Cart.updateOne({ ...query, "items.product": new mongoose.Types.ObjectId(product), "items.color": color, "items.size": size, }, { $inc: { "items.$.quantity": quantity } });
 
-        let cart = await Cart.findOne(query);
-        if (!cart) cart = await Cart.create(query);
-
-        const existingIndex = cart.items.findIndex(item =>
-            item.product == product &&
-            item.color == color &&
-            item.size == size
-        );
-
-        if (existingIndex > -1) {
-            cart.items[existingIndex].quantity += quantity;
-        } else {
-            cart.items.push({ product, quantity, color, size });
+        if (result.matchedCount === 0) {
+            await Cart.updateOne(query, { $push: { items: { product, quantity, color, size } } }, { upsert: true });
         }
-        await cart.populate("items.product");
-        await cart.save();
 
-        const enrichedItems = await enrichItemsWithFlashSale(cart.items);
+        const updatedCart = await Cart.findOne(query).populate("items.product");
 
+        const enrichedItems = await enrichItemsWithFlashSale(updatedCart.items);
+        
         res.status(200).json({ items: enrichedItems });
     } catch (error) {
         console.error(error.message);
