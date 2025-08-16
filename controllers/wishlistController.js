@@ -201,6 +201,8 @@ export const getWishlistItems = async (req, res) => {
 
         const enrichedItems = await enrichItemsWithFlashSale(wishlist.items);
 
+        console.log(enrichedItems);
+
         res.status(200).json({ items: enrichedItems });
 
     } catch (error) {
@@ -224,6 +226,7 @@ export const getGuestWishlistItems = async (req, res) => {
         }
 
         const enrichedItems = await enrichItemsWithFlashSale(wishlist.items);
+        console.log(enrichedItems);
         res.status(200).json({ items: enrichedItems });
     } catch (error) {
         console.error(error);
