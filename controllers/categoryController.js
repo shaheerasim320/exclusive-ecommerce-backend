@@ -1,6 +1,6 @@
 import Category from "../models/Category.js"
 import Product from "../models/Product.js"
-import mongoose from "mongoose";
+import { enrichItemsWithFlashSale } from "../utils/enrichWithFlashSale.js";
 
 const addCategory = async (req, res) => {
     try {
@@ -159,7 +159,6 @@ const getHirearcialDropDownCategories = async (req, res) => {
     try {
         const mainCategories = await Category.find({ parentCategory: null });
 
-        // Use Promise.all to wait for all async subcategory fetches
         const categories = await Promise.all(
             mainCategories.map(async (category) => {
                 const subCategories = await Category.find({ parentCategory: category._id });
@@ -210,10 +209,13 @@ const getCategoryProducts = async (req, res) => {
             return res.status(400).json({ message: "CategoryID required" })
         }
         const products = await Product.find({ category: categoryID })
-        if (!products) {
+
+        if (!products || products.length === 0) {
             return res.status(404).json({ message: "Unable to find the requested products for given category" })
         }
-        res.status(200).json(products)
+        const enrichedProducts = await enrichItemsWithFlashSale(products);
+
+        return res.status(200).json(enrichedProducts);
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ message: "Unable to find the requested products for given category" });
