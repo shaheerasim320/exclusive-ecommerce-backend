@@ -30,12 +30,12 @@ const getDefaultBillingAddress = async (req, res) => {
 }
 
 const setDefaultBillingAddress = async (req, res) => {
-    const userID = req.user.userId
     try {
         const { addressId } = req.body;
         if (!addressId) {
             return res.status(400).json({ message: "Address ID is required" });
         }
+
         const address = await Address.findById(addressId);
         if (!address) {
             return res.status(404).json({ message: "Address not found" });
@@ -52,23 +52,22 @@ const setDefaultBillingAddress = async (req, res) => {
 
         await Address.updateMany(
             { user: targetUserId, _id: { $ne: addressId } },
-            { $set: { defaultBillingAddress: true } }
+            { $set: { defaultBillingAddress: false } }
         );
 
         address.defaultBillingAddress = true;
-        address.save();
+        await address.save();
 
         await User.findByIdAndUpdate(targetUserId, {
             defaultBillingAddress: address._id
         });
 
         res.status(200).json({ message: "Default billing address set successfully" });
-
     } catch (error) {
         console.error("Set default billing address error:", error.message);
         res.status(500).json({ message: "Failed to set default billing address" });
     }
-}
+};
 
 const setDefaultShippingAddress = async (req, res) => {
     try {
@@ -85,20 +84,17 @@ const setDefaultShippingAddress = async (req, res) => {
         const actingUserId = req.user.userId;
         const isAdmin = req.user.role === "admin";
 
-        // For non-admins, ensure the address belongs to the user
         if (!isAdmin && address.user.toString() !== actingUserId) {
             return res.status(403).json({ message: "You are not authorized to update this address" });
         }
 
         const targetUserId = address.user;
 
-        // Unset other default shipping addresses for the user
         await Address.updateMany(
             { user: targetUserId, _id: { $ne: addressId } },
             { $set: { defaultShippingAddress: false } }
         );
 
-        // Set this address as default
         address.defaultShippingAddress = true;
         await address.save();
 
@@ -115,10 +111,8 @@ const setDefaultShippingAddress = async (req, res) => {
 
 const saveAddress = async (req, res) => {
     try {
-        // Check if the request is made by an admin for a specific user
         const targetUserID = req.body.userId || req.user.userId;
 
-        // Validate the target user
         const user = await User.findById(targetUserID);
         if (!user) {
             return res.status(404).json({ message: "Unable to find user" });
@@ -173,17 +167,14 @@ const updateAddress = async (req, res) => {
         const actingUserId = req.user.userId;
         const isAdmin = req.user.role === "admin";
 
-        // ✅ Authorization: only allow access if user owns address or is an admin
         if (!isAdmin && addressToUpdate.user.toString() !== actingUserId) {
             return res.status(403).json({ message: "Unauthorized to update this address" });
         }
 
-        // ✅ Optional: log warning if admin tries to update address not linked to userId (you could allow this)
         if (isAdmin && req.body.userId && req.body.userId !== addressToUpdate.user.toString()) {
             return res.status(400).json({ message: "Address-user mismatch" });
         }
         console.log(`Name: ${name}, Phone Number: ${phoneNumber} , Address: ${address} , City: ${city} , Province ${province} Country: ${country}`)
-        // ✅ Perform updates
         addressToUpdate.name = name || addressToUpdate.name;
         addressToUpdate.phoneNumber = phoneNumber || addressToUpdate.phoneNumber;
         addressToUpdate.address = address || addressToUpdate.address;
