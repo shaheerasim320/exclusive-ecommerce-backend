@@ -1,6 +1,6 @@
 import Category from "../models/Category.js"
 import Product from "../models/Product.js"
-import { enrichItemsWithFlashSale } from "../utils/enrichWithFlashSale.js";
+import { enrichProductsWithFlashSale } from "../utils/enrichWithFlashSale.js";
 
 const addCategory = async (req, res) => {
     try {
@@ -213,8 +213,7 @@ const getCategoryProducts = async (req, res) => {
         if (!products || products.length === 0) {
             return res.status(404).json({ message: "Unable to find the requested products for given category" })
         }
-        const enrichedProducts = await enrichItemsWithFlashSale(products);
-        console.log(enrichedProducts)
+        const enrichedProducts = await enrichProductsWithFlashSale(products);
         return res.status(200).json(enrichedProducts);
     } catch (error) {
         console.error(error.message);
