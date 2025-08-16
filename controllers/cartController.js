@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import { enrichItemsWithFlashSale } from "../utils/enrichWithFlashSale.js";
@@ -60,7 +61,7 @@ export const addToCart = async (req, res) => {
         const updatedCart = await Cart.findOne(query).populate("items.product");
 
         const enrichedItems = await enrichItemsWithFlashSale(updatedCart.items);
-        
+
         res.status(200).json({ items: enrichedItems });
     } catch (error) {
         console.error(error.message);
@@ -189,39 +190,6 @@ const applyCoupon = async (req, res) => {
     }
 };
 
-const getCartItemByProductID = async (req, res) => {
-    const userID = req.user.userId;
-    let { productID, quantity, color, size } = req.query;
-
-    quantity = parseInt(quantity);
-    if (color === "null") color = null;
-    if (size === "null") size = null;
-
-    try {
-        const cart = await Cart.findOne({ user: userID }).populate("items");
-
-        if (!cart) {
-            return res.status(404).json({ message: "Unable to find cart" });
-        }
-        const cartItem = cart.items.find(item =>
-            item.productID.toString() === productID &&
-            item.quantity === quantity &&
-            item.color === color &&
-            item.size === size
-        )
-
-        if (!cartItem) {
-            return res.status(404).json({ message: "Requested resource not found in your cart" });
-        }
-        const populatedItem = await cartItem.populate("productID")
-
-        res.status(200).json(populatedItem);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-
 const getAppliedCoupon = async (req, res) => {
     const query = req.user?.userId ? { user: req.user.userId } : { guestId: req.guestId };
     try {
@@ -274,4 +242,4 @@ export const discardGuestCart = async (req, res) => {
 
 
 
-export { applyCoupon, getCartItemByProductID, getAppliedCoupon, removeCoupon }
+export { applyCoupon, getAppliedCoupon, removeCoupon }
