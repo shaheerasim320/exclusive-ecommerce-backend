@@ -40,7 +40,7 @@ export const registerUser = async (req, res) => {
             secure: false,
             auth: {
                 user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS, 
+                pass: process.env.SMTP_PASS,
             },
         });
 
@@ -261,14 +261,11 @@ export const resendToken = async (req, res) => {
         const logo = "https://res.cloudinary.com/dmsuypprq/image/upload/v1738489765/bxe3q3uoapzktpuplggn.png"; // Ensure this URL is accessible
 
         const isAdminPassword = await bcrypt.compare("AdminSetPassword0000", user.password);
-        // Determine the purpose: verification or password setup
         let subject, htmlContent;
 
-        // Base URL for frontend, use environment variable for production
         const frontendBaseUrl = "https://exclusive-ecommerce-lac.vercel.app";
 
         if (isAdminPassword) {
-            // Admin-created user: password setup email
             const passwordSetLink = `${frontendBaseUrl}/password-form?create=true&token=${token}`;
             subject = "Set Your Password - Exclusive";
             htmlContent = `
@@ -803,5 +800,132 @@ export const getUser = async (req, res) => {
     }
 };
 
+export const resetPasswordEmail = async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
 
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "30m" }
+        );
+
+        const logo = "https://res.cloudinary.com/dmsuypprq/image/upload/v1738489765/bxe3q3uoapzktpuplggn.png"
+
+        const resetLink = `https://exclusive-ecommerce-lac.vercel.app/password-form?reset=true&token=${token}`;
+
+        const transporter = nodemailer.createTransport({
+            host: "smtp-relay.brevo.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
+        await transporter.sendMail({
+            from: `"Exclusive" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Reset Your Password - Exclusive",
+            html: `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <meta charset="UTF-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                <style>
+                    @media only screen and (max-width: 600px) {
+                        .container { width: 90% !important; padding: 20px !important; }
+                        .logo { width: 80px !important; height: 80px !important; }
+                        .title { font-size: 22px !important; }
+                        .text, .footer { font-size: 14px !important; }
+                        .reset-btn { width: 100% !important; padding: 12px 0 !important; }
+                    }
+                </style>
+                </head>
+                <body style="margin:0; padding:0; background-color:#f2f2f2;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f2f2;">
+                    <tr>
+                        <td align="center">
+                            <table class="container" width="500" cellpadding="0" cellspacing="0" style="background-color:white; padding:40px; border-radius:8px; border:1px solid #ddd;">
+                                <tr>
+                                    <td align="center">
+                                        <img src="${logo}" alt="Logo" class="logo" style="width:120px; height:120px;" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding: 28px 0;">
+                                        <h2 class="title" style="font-size:28px; font-weight:600; margin:0;">Reset Your Password</h2>
+                                        <p class="text" style="font-size:15px; margin-top:10px; color:#333;">A password reset was requested for your account. Click the button below to set a new password.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding: 30px 0;">
+                                        <a href="${resetLink}" class="reset-btn" style="display:block; background-color:#DB4444; color:white; text-decoration:none; border-radius:8px; padding:11px 0; width:154px; text-align:center;">Reset My Password</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <p class="footer" style="font-size:15px; color:#777; text-align:center;">
+                                            This password reset link is valid for 30 minutes. If you didn't request this, you can safely ignore this email.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                </body>
+                </html>
+            `,
+        });
+        res.status(200).json({
+            message: "Password reset email sent successfully",
+        })
+    } catch (error) {
+        console.error(error.message);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+        return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const { userId } = decoded;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found or token is invalid" });
+        }
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Password has been reset successfully" });
+    } catch (error) {
+        console.error(error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: "Invalid or expired token" });
+        }
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: "Token has expired" });
+        }
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
