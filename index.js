@@ -36,7 +36,7 @@ app.use(cookieParser())
 app.use(cors({
     origin: [
         "https://exclusive-ecommerce-lac.vercel.app",
-        "http://localhost:5000"
+        "http://localhost:5173"
     ],
     credentials: true
 }));
