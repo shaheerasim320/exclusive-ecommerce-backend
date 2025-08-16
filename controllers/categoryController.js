@@ -214,7 +214,7 @@ const getCategoryProducts = async (req, res) => {
             return res.status(404).json({ message: "Unable to find the requested products for given category" })
         }
         const enrichedProducts = await enrichItemsWithFlashSale(products);
-
+        console.log(enrichedProducts)
         return res.status(200).json(enrichedProducts);
     } catch (error) {
         console.error(error.message);
